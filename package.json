@@ -4,9 +4,9 @@
     "type": "module",
     "scripts": {
         "postinstall": "npx prisma generate --schema=backend/prisma/schema.prisma && npm --prefix frontend install --no-fund --no-audit",
-        "vercel-build": "npm run prisma:generate && npm run build",
+        "vercel-build": "npx prisma generate --schema=backend/prisma/schema.prisma && npm run build",
         "dev": "node --watch backend/src/server.js",
-        "build": "npm --prefix frontend run build",
+        "build": "npx prisma generate --schema=backend/prisma/schema.prisma && npm --prefix frontend run build",
         "start": "node backend/src/server.js",
         "prisma:generate": "npx prisma generate --schema=backend/prisma/schema.prisma",
         "prisma:migrate": "cd backend && npx prisma migrate deploy"
