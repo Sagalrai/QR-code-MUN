@@ -63,6 +63,24 @@ app.get("/health", async (_req, res) => {
     }
 });
 
+app.get("/api/health", async (_req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ ok: true, status: "healthy" });
+    } catch (error) {
+        res.status(500).json({ ok: false, message: "Database connection failed", details: error.message });
+    }
+});
+
+app.get("/", (_req, res) => {
+    res.json({
+        ok: true,
+        app: "event-volunteer-qr",
+        status: "running",
+        routes: ["/health", "/api/health", "/v/:volunteerId"],
+    });
+});
+
 app.post(
     "/api/auth/login",
     [
@@ -324,22 +342,27 @@ app.use((error, _req, res, _next) => {
 });
 
 const PORT = config.port;
-app.listen(PORT, async () => {
-    console.log(`Server running on http://localhost:${PORT}`);
 
-    try {
-        const adminExists = await prisma.adminUser.count();
-        if (!adminExists) {
-            const hashed = await hashPassword(config.adminPassword);
-            await prisma.adminUser.create({
-                data: {
-                    username: config.adminUsername,
-                    password: hashed,
-                },
-            });
-            console.log(`Seeded admin user: ${config.adminUsername}`);
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    app.listen(PORT, async () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+
+        try {
+            const adminExists = await prisma.adminUser.count();
+            if (!adminExists) {
+                const hashed = await hashPassword(config.adminPassword);
+                await prisma.adminUser.create({
+                    data: {
+                        username: config.adminUsername,
+                        password: hashed,
+                    },
+                });
+                console.log(`Seeded admin user: ${config.adminUsername}`);
+            }
+        } catch (error) {
+            console.error("Admin seeding failed:", error.message);
         }
-    } catch (error) {
-        console.error("Admin seeding failed:", error.message);
-    }
-});
+    });
+}
+
+export default app;
