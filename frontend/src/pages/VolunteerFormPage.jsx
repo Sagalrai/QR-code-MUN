@@ -46,6 +46,50 @@ export default function VolunteerFormPage() {
         setForm(current => ({ ...current, [event.target.name]: event.target.value }));
     };
 
+    const handlePhotoSelect = async event => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setError("");
+
+        try {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const maxSize = 1200;
+                    let width = image.width;
+                    let height = image.height;
+
+                    if (width > maxSize || height > maxSize) {
+                        const scale = Math.min(maxSize / width, maxSize / height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(image, 0, 0, width, height);
+                    setForm(current => ({ ...current, photo: canvas.toDataURL("image/jpeg", 0.8) }));
+                };
+                image.src = reader.result;
+            };
+
+            reader.onerror = () => {
+                setError("Unable to read the selected photo");
+            };
+
+            reader.readAsDataURL(file);
+        } catch (err) {
+            setError("Unable to process the selected photo");
+        } finally {
+            event.target.value = "";
+        }
+    };
+
     const onSubmit = async event => {
         event.preventDefault();
         setLoading(true);
@@ -100,20 +144,30 @@ export default function VolunteerFormPage() {
                                 value={form.name}
                                 onChange={onChange}
                                 required
-                                placeholder="Alex Johnson"
+                                placeholder="Your name"
                                 className="input-shell"
                             />
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="mb-2 block text-sm font-medium text-slate-300">Photo URL</label>
+                            <label className="mb-2 block text-sm font-medium text-slate-300">Photo</label>
                             <input
-                                name="photo"
-                                value={form.photo}
-                                onChange={onChange}
-                                className="input-shell"
-                                placeholder="https://..."
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                onChange={handlePhotoSelect}
+                                className="input-shell file:mr-3 file:rounded-full file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:font-medium file:text-slate-200 file:transition hover:file:bg-slate-700"
                             />
+                            {form.photo && (
+                                <div className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-2.5">
+                                    <img
+                                        src={form.photo}
+                                        alt="Volunteer preview"
+                                        className="h-14 w-14 rounded-xl object-cover"
+                                    />
+                                    <span className="text-xs text-slate-300">Gallery photo selected</span>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -123,7 +177,7 @@ export default function VolunteerFormPage() {
                                 value={form.phone}
                                 onChange={onChange}
                                 className="input-shell"
-                                placeholder="+1 234 567 890"
+                                placeholder="+977"
                             />
                         </div>
 
