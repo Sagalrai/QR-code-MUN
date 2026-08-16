@@ -5,7 +5,7 @@ import PublicVolunteerPage from "./pages/PublicVolunteerPage";
 import VolunteerDetailPage from "./pages/VolunteerDetailPage";
 import VolunteerFormPage from "./pages/VolunteerFormPage";
 import VolunteerQrPage from "./pages/VolunteerQrPage";
-import { getToken, isAuthenticated } from "./services/auth";
+import { isAuthenticated } from "./services/auth";
 
 function ProtectedRoute({ children }) {
     if (!isAuthenticated()) {
@@ -18,8 +18,9 @@ export default function App() {
     return (
         <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route
-                path="/"
+                path="/dashboard"
                 element={
                     <ProtectedRoute>
                         <DashboardPage />
@@ -59,7 +60,7 @@ export default function App() {
                 }
             />
             <Route path="/v/:volunteerId" element={<PublicVolunteerPage />} />
-            <Route path="*" element={<Navigate to={getToken() ? "/" : "/login"} replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
     );
 }

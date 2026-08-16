@@ -348,8 +348,11 @@ if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
         console.log(`Server running on http://localhost:${PORT}`);
 
         try {
-            const adminExists = await prisma.adminUser.count();
-            if (!adminExists) {
+            const existingAdmin = await prisma.adminUser.findUnique({
+                where: { username: config.adminUsername },
+            });
+
+            if (!existingAdmin) {
                 const hashed = await hashPassword(config.adminPassword);
                 await prisma.adminUser.create({
                     data: {
@@ -358,6 +361,17 @@ if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
                     },
                 });
                 console.log(`Seeded admin user: ${config.adminUsername}`);
+                return;
+            }
+
+            const matchesConfiguredPassword = await comparePassword(config.adminPassword, existingAdmin.password);
+            if (!matchesConfiguredPassword) {
+                const hashed = await hashPassword(config.adminPassword);
+                await prisma.adminUser.update({
+                    where: { id: existingAdmin.id },
+                    data: { password: hashed },
+                });
+                console.log(`Updated stored admin password for ${config.adminUsername}`);
             }
         } catch (error) {
             console.error("Admin seeding failed:", error.message);

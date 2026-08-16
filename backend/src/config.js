@@ -14,5 +14,5 @@ export const config = {
     corsOrigin: process.env.CORS_ORIGIN || vercelUrl || "http://localhost:5173",
     databaseUrl: process.env.DATABASE_URL || "mysql://appuser:apppass@127.0.0.1:3306/event_volunteer_db",
     adminUsername: process.env.ADMIN_USERNAME || "admin",
-    adminPassword: process.env.ADMIN_PASSWORD || "admin123",
+    adminPassword: process.env.ADMIN_PASSWORD || "12345678",
 };
